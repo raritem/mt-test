@@ -4,6 +4,25 @@
 
 'use strict';
 
+// ── GitHub RAW (картинки при локальном запуске) ──────────────────
+function getGhRawBase() {
+  try {
+    const cfg = (window.GH && GH.getConfig) ? GH.getConfig() : { repo: '', branch: 'main' };
+    const repo = String(cfg.repo || '').trim().replace(/\/+$/, '');
+    const branch = String(cfg.branch || 'main').trim() || 'main';
+    if (!repo) return null;
+    return 'https://raw.githubusercontent.com/' + repo + '/' + branch + '/';
+  } catch (_) {
+    return null;
+  }
+}
+
+function assetUrl(path) {
+  const base = getGhRawBase();
+  const p = String(path || '').replace(/^\/+/, '');
+  return base ? (base + p) : ('../' + p);
+}
+
 // ════════════════════════════════════════════════════════════════
 //  СОСТОЯНИЕ
 // ════════════════════════════════════════════════════════════════
@@ -286,7 +305,7 @@ function renderLots() {
   state.activeLots.forEach(lot => {
     const preview = lot.thumb || (lot.images && lot.images[0]);
     const thumb   = preview
-      ? `<img class="admin-lot-thumb" src="../${preview}" alt="" loading="lazy">`
+      ? `<img class="admin-lot-thumb" src="${assetUrl(preview)}" alt="" loading="lazy">`
       : `<div class="admin-lot-thumb-placeholder">🎯</div>`;
 
     const onFunpay = (lot.onFunpay !== false); // совместимость со старыми лотами
@@ -571,7 +590,7 @@ function renderManagedImages() {
     card.draggable = true;
     card.innerHTML = `
       <div class="drag-handle"><span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg></span></div>
-      <img src="../${src}" alt="" loading="lazy">
+      <img src="${assetUrl(src)}" alt="" loading="lazy">
       <div class="managed-img-footer">
         <span class="managed-img-num">${idx + 1}</span>
         <div class="managed-img-actions">

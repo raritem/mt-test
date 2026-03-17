@@ -42,6 +42,23 @@ function getRoot() {
 
 const ROOT = getRoot();
 
+// ── GitHub RAW (для локального предпросмотра) ────────────────────
+function getGhRawBase() {
+  try {
+    const repo = (localStorage.getItem('wotshop-gh-repo') || '').trim().replace(/\/+$/, '');
+    const branch = (localStorage.getItem('wotshop-gh-branch') || 'main').trim() || 'main';
+    if (!repo) return null;
+    return 'https://raw.githubusercontent.com/' + repo + '/' + branch + '/';
+  } catch (_) {
+    return null;
+  }
+}
+
+function assetUrl(path) {
+  const base = getGhRawBase();
+  return base ? (base + String(path || '').replace(/^\/+/, '')) : (ROOT + path);
+}
+
 // ── Утилиты ─────────────────────────────────────────────────────
 
 /** Получить URL-параметр */
@@ -237,7 +254,10 @@ async function loadShop() {
   const resetEl        = document.getElementById('lots-filter-reset');
 
   try {
-    const data = await fetchJSON(ROOT + 'data/' + shopId + '.json');
+    const rawBase = getGhRawBase();
+    const data = rawBase
+      ? await fetchJSON(rawBase + 'data/' + shopId + '.json')
+      : await fetchJSON(ROOT + 'data/' + shopId + '.json');
 
     // Хлебные крошки
     if (bcEl) {
@@ -286,7 +306,7 @@ async function loadShop() {
       const firstImg = lot.images && lot.images[0];
       const previewSrc = lot.thumb || firstImg;
       const thumbHtml = previewSrc
-        ? `<img class="lot-card-thumb" src="${ROOT}${previewSrc}" alt="${esc(lot.title)}" loading="lazy">`
+        ? `<img class="lot-card-thumb" src="${assetUrl(previewSrc)}" alt="${esc(lot.title)}" loading="lazy">`
         : `<div class="lot-card-thumb-placeholder">🎯</div>`;
 
       const count  = (lot.images || []).length;
@@ -339,7 +359,7 @@ async function loadShop() {
             const firstImg = lot.images && lot.images[0];
             const previewSrc = lot.thumb || firstImg;
             const thumbHtml = previewSrc
-              ? `<img class="lot-row-thumb" src="${ROOT}${previewSrc}" alt="${esc(lot.title)}" loading="lazy">`
+              ? `<img class="lot-row-thumb" src="${assetUrl(previewSrc)}" alt="${esc(lot.title)}" loading="lazy">`
               : `<div class="lot-row-thumb-placeholder">🎯</div>`;
 
             const title = normalizeLotTitle(lot.title);
