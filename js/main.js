@@ -5,6 +5,10 @@
 
 'use strict';
 
+// ── Feature flags ────────────────────────────────────────────────
+// Временно выключено: на некоторых Windows/браузерах снижает резкость текста.
+const STARS_BG_ENABLED = false;
+
 // ── Конфиг ──────────────────────────────────────────────────────
 // BASE_URL определяется автоматически по location.
 // Для работы на GitHub Pages: /repo-name/
@@ -57,6 +61,37 @@ function getGhRawBase() {
 function assetUrl(path) {
   const base = getGhRawBase();
   return base ? (base + String(path || '').replace(/^\/+/, '')) : (ROOT + path);
+}
+
+// ── Fade-up cleanup (резкость текста на Windows) ─────────────────
+let fadeCleanupBound = false;
+function bindFadeCleanup() {
+  if (fadeCleanupBound) return;
+  fadeCleanupBound = true;
+
+  // Снимаем класс сразу после завершения анимации,
+  // чтобы браузер не держал элементы в композитинге.
+  document.addEventListener('animationend', (e) => {
+    const el = e.target;
+    if (!(el instanceof HTMLElement)) return;
+    if (e.animationName !== 'fadeUp') return;
+    if (!el.classList.contains('fade-up')) return;
+    el.classList.remove('fade-up');
+    el.style.animationDelay = '';
+    el.style.willChange = '';
+    el.style.opacity = '';
+  }, true);
+}
+
+// ── Brand title (название витрины в header) ──────────────────────
+function setBrandTitle(text) {
+  const el = document.getElementById('brand-title');
+  if (el) el.textContent = text || '';
+}
+
+function setBrandHref(href) {
+  const a = document.querySelector('a.logo');
+  if (a && href) a.setAttribute('href', href);
 }
 
 // ── Утилиты ─────────────────────────────────────────────────────
@@ -171,39 +206,59 @@ function animateIn(parent) {
 
 // ── Генерация звёзд ─────────────────────────────────────────────
 function initStars() {
-  const container = document.getElementById('stars');
-  if (!container) return;
-  const count = 60;
-  const frag = document.createDocumentFragment();
-  for (let i = 0; i < count; i++) {
-    const s = document.createElement('div');
-    const size = Math.random() * 2 + 1;
-    s.style.cssText = [
-      'position:absolute',
-      'border-radius:50%',
-      'background:rgba(255,255,255,' + (Math.random() * 0.4 + 0.1) + ')',
-      'width:' + size + 'px',
-      'height:' + size + 'px',
-      'left:' + Math.random() * 100 + '%',
-      'top:' + Math.random() * 100 + '%',
-      'animation:twinkle ' + (Math.random() * 3 + 2) + 's ease-in-out infinite',
-      'animation-delay:' + Math.random() * 3 + 's',
-    ].join(';');
-    frag.appendChild(s);
-  }
-  container.appendChild(frag);
+  if (!STARS_BG_ENABLED) return;
 
-  // Добавим @keyframes для мерцания
-  if (!document.getElementById('star-keyframes')) {
-    const style = document.createElement('style');
-    style.id = 'star-keyframes';
-    style.textContent = '@keyframes twinkle { 0%,100%{opacity:0.3} 50%{opacity:1} }';
-    document.head.appendChild(style);
+  // На Windows/Chrome overlay-слои (fixed div поверх контента) ухудшают резкость текста
+  // из-за композитинга. Поэтому делаем звёзды ЧАСТЬЮ ФОНА страницы (html/body), без overlay DOM.
+  const target = document.documentElement;
+  const body   = document.body;
+  if (!target || !body) return;
+  if (target.dataset.starsReady === '1') return;
+  target.dataset.starsReady = '1';
+
+  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const size = 512; // tile size (px)
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.floor(size * dpr);
+  canvas.height = Math.floor(size * dpr);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, size, size);
+
+  // Генерируем звёзды (точки разных размеров/яркости)
+  const count = 110;
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    const r = Math.random() < 0.15 ? (Math.random() * 1.6 + 1.0) : (Math.random() * 0.9 + 0.35);
+    const a = Math.random() * 0.35 + 0.10;
+    ctx.fillStyle = 'rgba(255,255,255,' + a.toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
   }
+
+  const dataUrl = canvas.toDataURL('image/png');
+  const bg =
+    'radial-gradient(ellipse at 20% 50%, rgba(245,197,24,0.03) 0%, transparent 60%),' +
+    'radial-gradient(ellipse at 80% 20%, rgba(245,197,24,0.02) 0%, transparent 50%),' +
+    'url("' + dataUrl + '")';
+  // Ставим на html, чтобы фон был "под" всей страницей
+  target.style.backgroundImage = bg;
+  target.style.backgroundRepeat = 'no-repeat, no-repeat, repeat';
+  target.style.backgroundSize = 'auto, auto, ' + size + 'px ' + size + 'px';
+  target.style.backgroundPosition = 'center, center, 0 0';
+  // На всякий случай дублируем на body, чтобы не зависеть от особенностей браузера
+  body.style.backgroundImage = bg;
+  body.style.backgroundRepeat = 'no-repeat, no-repeat, repeat';
+  body.style.backgroundSize = 'auto, auto, ' + size + 'px ' + size + 'px';
+  body.style.backgroundPosition = 'center, center, 0 0';
 }
 
 // ── INDEX: Загрузить и отрисовать список витрин ──────────────────
 async function loadShops() {
+  bindFadeCleanup();
   initStars();
   const grid = document.getElementById('shops-grid');
   if (!grid) return;
@@ -238,6 +293,7 @@ async function loadShops() {
 
 // ── SHOP: Загрузить витрину с лотами ────────────────────────────
 async function loadShop() {
+  bindFadeCleanup();
   initStars();
   const shopId = getParam('id');
   if (!shopId) {
@@ -245,13 +301,11 @@ async function loadShop() {
     return;
   }
 
-  const headerEl = document.getElementById('shop-header');
   const gridEl   = document.getElementById('lots-grid');
   const bcEl     = document.getElementById('breadcrumb');
   const tableSectionEl = document.getElementById('lots-table-section');
   const tableEl        = document.getElementById('lots-table');
   const qEl            = document.getElementById('lots-filter-q');
-  const resetEl        = document.getElementById('lots-filter-reset');
 
   try {
     const rawBase = getGhRawBase();
@@ -259,27 +313,15 @@ async function loadShop() {
       ? await fetchJSON(rawBase + 'data/' + shopId + '.json')
       : await fetchJSON(ROOT + 'data/' + shopId + '.json');
 
-    // Хлебные крошки
-    if (bcEl) {
-      bcEl.innerHTML = `
-        <a href="${ROOT}index.html">Главная</a>
-        <span class="sep">/</span>
-        <span class="current">${esc(data.name || shopId)}</span>
-      `;
-    }
+    // На странице витрины крошки не нужны
+    if (bcEl) bcEl.innerHTML = '';
 
     // Заголовок витрины
-    if (headerEl) {
-      headerEl.innerHTML = `
-        <div>
-          <h1 class="shop-title"><span>${esc(data.name || shopId)}</span></h1>
-          ${data.description ? `<p style="color:var(--text-muted);font-size:14px;margin-top:6px">${esc(data.description)}</p>` : ''}
-        </div>
-      `;
-    }
+    setBrandTitle(data.name || shopId);
+    setBrandHref('./?id=' + encodeURIComponent(shopId));
 
     // Устанавливаем title
-    document.title = (data.name || shopId) + ' — WoT Shop';
+    document.title = (data.name || shopId);
 
     if (!gridEl) return;
 
@@ -381,13 +423,18 @@ async function loadShop() {
               </div>
             `;
 
+            const lotUrl = ROOT + 'lot/?shop=' + encodeURIComponent(shopId) + '&id=' + encodeURIComponent(lot.id);
+            row.addEventListener('click', (e) => {
+              if (e.target.closest('.lot-row-funpay-btn')) return;
+              window.location.href = lotUrl;
+            });
+
             tableEl.appendChild(row);
           });
         };
 
         // Привязка фильтра
         if (qEl) qEl.oninput = renderHidden;
-        if (resetEl) resetEl.onclick = () => { if (qEl) qEl.value = ''; renderHidden(); };
 
         renderHidden();
       }
@@ -403,6 +450,7 @@ async function loadShop() {
 
 // ── LOT: Загрузить страницу лота ─────────────────────────────────
 async function loadLot() {
+  bindFadeCleanup();
   initStars();
   const shopId = getParam('shop');
   const lotId  = getParam('id');
@@ -417,19 +465,22 @@ async function loadLot() {
   const bcEl     = document.getElementById('breadcrumb');
 
   try {
-    const data = await fetchJSON(ROOT + 'data/' + shopId + '.json');
+    const rawBase = getGhRawBase();
+    const data = rawBase
+      ? await fetchJSON(rawBase + 'data/' + shopId + '.json')
+      : await fetchJSON(ROOT + 'data/' + shopId + '.json');
     const lot  = (data.lots || []).find(l => l.id === lotId);
 
     if (!lot) throw new Error('Лот не найден');
 
     const title = normalizeLotTitle(lot.title);
-    document.title = title + ' — WoT Shop';
+    document.title = title;
+    setBrandTitle(data.name || shopId);
+    setBrandHref(ROOT + 'shop/?id=' + encodeURIComponent(shopId));
 
-    // Хлебные крошки — с overflow truncation на мобиле
+    // Хлебные крошки: "Витрина / Лот" (без "Главная")
     if (bcEl) {
       bcEl.innerHTML = `
-        <a href="${ROOT}index.html">Главная</a>
-        <span class="sep">/</span>
         <a href="${ROOT}shop/?id=${encodeURIComponent(shopId)}" class="bc-shop">${esc(data.name || shopId)}</a>
         <span class="sep">/</span>
         <span class="current bc-lot">${esc(title)}</span>
@@ -439,7 +490,7 @@ async function loadLot() {
     // Заголовок лота
     if (headerEl) {
       const fp = lot.funpay
-        ? `<a href="${lot.funpay}" target="_blank" rel="noopener" class="funpay-btn">Купить на ${funpayLogo(16)}</a>`
+        ? `<a href="${lot.funpay}" target="_blank" rel="noopener" class="lot-header-funpay-btn">Купить на ${funpayLogo(14)}</a>`
         : '';
       headerEl.innerHTML = `
         <div class="lot-header-top">

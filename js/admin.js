@@ -171,7 +171,13 @@ function loadSettingsToForm() {
 
 function updateTokenStatus() {
   if (GH.isConfigured()) {
-    dom.tokenStatus.textContent = '✓ ' + GH.getConfig().repo;
+    const repo = GH.getConfig().repo;
+    dom.tokenStatus.innerHTML = `
+      <span class="token-status-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-check-icon lucide-check-check"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>
+      </span>
+      <span class="token-status-repo">${esc(repo)}</span>
+    `;
     dom.tokenStatus.classList.add('connected');
   } else {
     dom.tokenStatus.textContent = 'Не настроено';
@@ -408,7 +414,7 @@ async function onShopSave() {
       }
     }
     await GH.writeJSON('data/shops.json', { shops: state.shops }, 'Update shops list');
-    setStatus(dom.shopModalStatus, '✓ Сохранено', 'ok');
+    setStatus(dom.shopModalStatus, 'Сохранено', 'ok');
     setTimeout(() => {
       closeModal('shopModal');
       renderShopList();
@@ -449,7 +455,7 @@ async function onLotSave() {
       state.activeLots.push({ id: 'lot_' + Date.now(), title, funpay, onFunpay, images: [] });
     }
     await saveLotsJSON();
-    setStatus(dom.lotModalStatus, '✓ Сохранено', 'ok');
+    setStatus(dom.lotModalStatus, 'Сохранено', 'ok');
     setTimeout(() => { closeModal('lotModal'); renderLots(); }, 500);
   } catch (e) {
     setStatus(dom.lotModalStatus, 'Ошибка: ' + e.message, 'err');
@@ -776,7 +782,20 @@ async function uploadFiles(files) {
   });
 
   const baseDir  = 'images/' + state.activeShop + '/' + imLotId;
-  const startIdx = imImages.length; // фиксируем ДО цикла
+  const startIdx = (() => {
+    // Берём следующий номер по фактическим именам файлов (не по length),
+    // чтобы не перезаписывать существующие картинки при пропусках/дубликатах.
+    let max = -1;
+    for (const p of imImages) {
+      const m = String(p || '').match(/\/(\d{3,})\.[a-z0-9]+$/i);
+      if (!m) continue;
+      const n = parseInt(m[1], 10);
+      if (!Number.isFinite(n)) continue;
+      // numberedName(idx) = (idx+1).padStart(3,'0') → значит idx = n-1
+      max = Math.max(max, n - 1);
+    }
+    return max + 1;
+  })();
   let   rateLimitHit = false;
 
   for (let i = 0; i < fileList.length; i++) {
@@ -785,7 +804,8 @@ async function uploadFiles(files) {
 
     try {
       statusEl.textContent = 'Конвертация…';
-      const { base64, ext } = await ImageConvert.toWebP(fileList[i]);
+      const file = fileList[i];
+      const { base64, ext } = await ImageConvert.toWebP(file);
 
       const fileNum  = startIdx + i;
       const fileName = ImageConvert.numberedName(fileNum, ext);
@@ -798,9 +818,9 @@ async function uploadFiles(files) {
       await GH.putBinaryFile(repoPath, base64, 'Upload ' + fileName, existingSha || undefined);
 
       // Thumb для первого фото лота
-      if (fileNum === 0) {
+      if (imImages.length === 0 && i === 0) {
         try {
-          const { base64: tB64, ext: tExt } = await ImageConvert.toWebP(fileList[i], 0.75, 480);
+          const { base64: tB64, ext: tExt } = await ImageConvert.toWebP(file, 0.75, 480);
           const thumbPath = baseDir + '/thumb.' + tExt;
           const thumbSha  = await GH.getFileSha(thumbPath);
           await GH.putBinaryFile(thumbPath, tB64, 'Thumb for ' + imLotId, thumbSha || undefined);
