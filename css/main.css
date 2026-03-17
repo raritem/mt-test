@@ -463,7 +463,7 @@ input, textarea { font-family: var(--font-body); }
   border: 0px solid var(--border);
   background: #111418;
   object-fit: cover;
-  filter: brightness(1.5);
+  filter: brightness(1);
 }
 
 .lot-row-thumb-placeholder {
