@@ -32,10 +32,29 @@
         <div class="spinner"></div>
       </div>
     </div>
+
+    <section class="lots-table-section" id="lots-table-section" style="display:none">
+      <div class="lots-table-header">
+        <h2 class="lots-table-title">Ещё аккаунты</h2>
+        <div class="lots-table-subtitle">Не отображаются в профиле FunPay</div>
+      </div>
+
+      <div class="lots-table-filters" id="lots-table-filters">
+        <div class="filter-row">
+          <input type="text" id="lots-filter-q" placeholder="Умный фильтр (позже): поиск по названию…" autocomplete="off">
+          <button class="btn btn-ghost" id="lots-filter-reset" type="button">Сброс</button>
+        </div>
+        <div class="filter-hint">Фильтр пока черновой — логику доработаем позже.</div>
+      </div>
+
+      <div class="lots-table" id="lots-table">
+        <!-- Горизонтальные карточки лотов -->
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
-    <p>Все аккаунты продаются через FunPay — безопасная сделка гарантирована.</p>
+    <p>Все аккаунты продаются через&nbsp;<img src="https://funpay.com/img/layout/logo-funpay.svg" alt="FunPay" class="funpay-logo-footer">&nbsp;— безопасная сделка гарантирована.</p>
   </footer>
 
   <script src="../js/main.js"></script>

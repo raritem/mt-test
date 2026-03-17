@@ -59,7 +59,7 @@ button { cursor: pointer; font-family: var(--font-body); }
 input, textarea { font-family: var(--font-body); }
 
 /* ── Звёздный фон ────────────────────────────────────────────── */
-.stars {
+/*.stars {
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -67,7 +67,7 @@ input, textarea { font-family: var(--font-body); }
   background:
     radial-gradient(ellipse at 20% 50%, rgba(245,197,24,0.03) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 20%, rgba(245,197,24,0.02) 0%, transparent 50%);
-}
+}*/
 
 /* ── Header ──────────────────────────────────────────────────── */
 .site-header {
@@ -115,16 +115,35 @@ input, textarea { font-family: var(--font-body); }
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 13px;
   color: var(--text-muted);
   flex: 1;
+  min-width: 0;  /* позволяет flex-детям сжиматься */
+  overflow: hidden;
 }
 
-.breadcrumb a { color: var(--text-muted); transition: color var(--transition); }
+.breadcrumb a { color: var(--text-muted); transition: color var(--transition); flex-shrink: 0; }
 .breadcrumb a:hover { color: var(--accent); }
-.breadcrumb .sep { opacity: 0.4; }
+.breadcrumb .sep { opacity: 0.4; flex-shrink: 0; }
 .breadcrumb .current { color: var(--text-dim); }
+
+/* Название лота в крошках — обрезается с ... на мобиле */
+.breadcrumb .bc-lot {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Название магазина в крошках — тоже обрезается если нет места */
+.breadcrumb .bc-shop {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+  flex-shrink: 1;
+}
 
 /* ── Container ───────────────────────────────────────────────── */
 .container {
@@ -231,18 +250,25 @@ input, textarea { font-family: var(--font-body); }
   letter-spacing: -0.02em;
 }
 
-.shop-title span { color: var(--accent); }
+.shop-title span { color: #e1e1e1; }
 
-/* ── Сетка лотов ─────────────────────────────────────────────── */
+/* ── Сетка лотов — несколько колонок на ПК ───────────────────── */
 .lots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .lots-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+}
+@media (max-width: 480px) {
+  .lots-grid { grid-template-columns: 1fr; }
 }
 
 .lot-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;
@@ -250,6 +276,7 @@ input, textarea { font-family: var(--font-body); }
   transition: background var(--transition), border-color var(--transition), transform var(--transition);
   text-decoration: none;
   cursor: pointer;
+  min-width: 0;
 }
 
 .lot-card:hover {
@@ -262,6 +289,9 @@ input, textarea { font-family: var(--font-body); }
   width: 100%;
   aspect-ratio: 16/9;
   object-fit: cover;
+  /* display:block убирает нижний зазор, image-rendering убирает замыленность */
+  display: block;
+  image-rendering: auto;
   background: #0d1117;
 }
 
@@ -285,7 +315,7 @@ input, textarea { font-family: var(--font-body); }
 }
 
 .lot-card-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
   line-height: 1.4;
@@ -296,37 +326,282 @@ input, textarea { font-family: var(--font-body); }
   color: var(--text-muted);
 }
 
-.lot-card-funpay {
+.lot-card-funpay { display: none; } /* старый класс — не используется */
+
+/* Кнопка FunPay внизу карточки */
+.lot-card-footer {
+  padding: 0 16px 16px;
+}
+
+.lot-card-funpay-btn {
+  display: block;
+  text-align: center;
+  padding: 8px 14px;
+  background: rgb(21 124 255);
+  border: 0px solid rgba(245,197,24,0.25);
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.lot-card-funpay-btn:hover {
+  background: rgba(245,197,24,0.2);
+  border-color: rgba(245,197,24,0.4);
+}
+
+/* ── "Таблица" лотов (горизонтальные карточки) ────────────────── */
+.lots-table-section {
+  margin-top: 38px;
+  padding-top: 26px;
+  border-top: 1px solid var(--border);
+}
+
+.lots-table-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.lots-table-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.lots-table-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.lots-table-filters {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.lots-table-filters .filter-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.lots-table-filters input[type="text"] {
+  flex: 1;
+  min-width: 220px;
+}
+
+.lots-table-filters .filter-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.lots-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lot-row-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+
+.lot-row-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(245,197,24,0.22);
+  transform: translateY(-2px);
+}
+
+.lot-row-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.lot-row-thumb,
+.lot-row-thumb-placeholder {
+  width: 68px;
+  height: 68px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: #0d1117;
+  object-fit: cover;
+}
+
+.lot-row-thumb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: rgba(255,255,255,0.06);
+  background: linear-gradient(135deg, #111418, #0d1117);
+}
+
+.lot-row-mid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lot-row-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.lot-row-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  min-height: 22px;
+}
+
+.lot-row-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  background: var(--accent-dim);
-  border: 1px solid rgba(245,197,24,0.2);
-  border-radius: var(--radius-sm);
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 500;
-  margin-top: auto;
-  transition: background var(--transition), border-color var(--transition);
-  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1;
 }
 
-.lot-card-funpay:hover {
+.lot-row-tags-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.lot-row-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lot-row-funpay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgb(21 124 255);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.lot-row-funpay-btn:hover {
   background: rgba(245,197,24,0.2);
-  border-color: rgba(245,197,24,0.35);
+  transform: translateY(-1px);
+}
+
+.lot-row-no-funpay {
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 1px dashed rgba(255,255,255,0.14);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+@media (max-width: 640px) {
+  .lots-table-filters .filter-row { flex-direction: column; align-items: stretch; }
+  .lots-table-filters input[type="text"] { min-width: 0; }
+  .lot-row-card { flex-direction: column; align-items: stretch; }
+  .lot-row-right { justify-content: flex-end; }
+  .lot-row-title { white-space: normal; }
+}
+
+/* ── FunPay логотип ──────────────────────────────────────────── */
+.funpay-logo,
+.funpay-logo-footer {
+  display: inline-block;
+  vertical-align: middle;
+  height: 20px;
+  width: auto;
+  position: relative;
+  top: -1px;
+  filter: brightness(0) invert(1);
+}
+
+.funpay-logo        { margin: 0 4px; }
+.funpay-logo-footer { margin: 0 5px; }
+
+/* ── Footer — всегда внизу ───────────────────────────────────── */
+main.container { min-height: calc(100vh - 64px - 80px); }
+
+.site-footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+}
+
+.site-footer p {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 /* ── Заголовок лота ──────────────────────────────────────────── */
 .lot-header {
-  padding: 32px 0 28px;
+  padding: 24px 0 28px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 32px;
+}
+
+.lot-header-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 8px 14px;
 }
 
 .lot-title {
@@ -610,24 +885,13 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   font-size: 16px;
 }
 
-/* ── Footer ──────────────────────────────────────────────────── */
-.site-footer {
-  text-align: center;
-  padding: 24px;
-  font-size: 13px;
-  color: var(--text-muted);
-  border-top: 1px solid var(--border);
-  position: relative;
-  z-index: 1;
-}
-
 /* ── Адаптив ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .container { padding: 24px 16px 60px; }
   .header-inner { padding: 0 16px; }
   .page-hero { padding: 40px 0 32px; }
-  .shops-grid { grid-template-columns: 1fr; }
-  .lots-grid { grid-template-columns: 1fr; }
+  .shops-grid { grid-template-columns: 1fr 1fr; }
+  /* lots-grid адаптив определён выше, не переопределяем */
 }
 
 /* ── Анимации появления ──────────────────────────────────────── */
@@ -636,9 +900,9 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.fade-up {
+/*.fade-up {
   animation: fadeUp 0.4s ease both;
-}
+}*/
 
 .fade-up:nth-child(1) { animation-delay: 0.05s; }
 .fade-up:nth-child(2) { animation-delay: 0.10s; }

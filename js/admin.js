@@ -45,6 +45,7 @@ const dom = {
   lotModalTitle:   $('lot-modal-title'),
   lotTitleInput:   $('lot-title-input'),
   lotFunpayInput:  $('lot-funpay-input'),
+  lotOnFunpayInput:$('lot-onfunpay-input'),
   lotModalStatus:  $('lot-modal-status'),
 
   confirmOverlay:  $('confirm-overlay'),
@@ -241,12 +242,20 @@ function renderShopPanel() {
   dom.adminMain.innerHTML = `
     <div class="shop-panel">
       <div class="shop-panel-header">
-        <div class="shop-panel-title">🏪 ${esc(shop.name || state.activeShop)}</div>
+        <div class="shop-panel-title">${esc(shop.name || state.activeShop)}</div>
         <div class="shop-panel-actions">
-          <a href="../shop/?id=${encodeURIComponent(state.activeShop)}" target="_blank" class="btn btn-ghost">↗ Открыть</a>
-          <button class="btn btn-ghost" id="edit-shop-btn">✏ Изменить</button>
-          <button class="btn btn-ghost" style="color:var(--danger)" id="delete-shop-btn">🗑 Удалить</button>
-          <button class="btn btn-primary" id="add-lot-btn">+ Добавить лот</button>
+          <a href="../shop/?id=${encodeURIComponent(state.activeShop)}" target="_blank" class="btn btn-ghost">
+            <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span> Открыть
+          </a>
+          <button class="btn btn-ghost" id="edit-shop-btn">
+            <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span> Изменить
+          </button>
+          <button class="btn btn-ghost" style="color:var(--danger)" id="delete-shop-btn">
+            <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span> Удалить
+          </button>
+          <button class="btn btn-primary" id="add-lot-btn">
+            <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Добавить лот
+          </button>
         </div>
       </div>
       <div class="admin-lots-list" id="admin-lots-list"></div>
@@ -280,21 +289,32 @@ function renderLots() {
       ? `<img class="admin-lot-thumb" src="../${preview}" alt="" loading="lazy">`
       : `<div class="admin-lot-thumb-placeholder">🎯</div>`;
 
+    const onFunpay = (lot.onFunpay !== false); // совместимость со старыми лотами
+    const badge = onFunpay
+      ? `<span class="admin-lot-badge admin-lot-badge-funpay">FunPay</span>`
+      : `<span class="admin-lot-badge admin-lot-badge-hidden">Скрыт</span>`;
+
     const card = document.createElement('div');
     card.className = 'admin-lot-card';
     card.innerHTML = `
       ${thumb}
       <div class="admin-lot-info">
-        <div class="admin-lot-title">${esc(lot.title)}</div>
+        <div class="admin-lot-title">${esc(lot.title)} ${badge}</div>
         <div class="admin-lot-meta">
-          <span>📸 ${(lot.images || []).length} фото</span>
-          ${lot.funpay ? `<a href="${lot.funpay}" target="_blank" style="color:var(--accent)">FunPay ↗</a>` : ''}
+          <span>${(lot.images || []).length} фото</span>
+          ${lot.funpay ? `<a href="${lot.funpay}" target="_blank" style="color:var(--accent)">FunPay <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg style="display:inline-block;vertical-align:middle" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span></a>` : ''}
         </div>
       </div>
       <div class="admin-lot-actions">
-        <button class="btn btn-ghost" data-action="images" data-lot="${lot.id}" title="Фото">🖼</button>
-        <button class="btn btn-ghost" data-action="edit"   data-lot="${lot.id}" title="Изменить">✏</button>
-        <button class="btn btn-ghost" style="color:var(--danger)" data-action="delete" data-lot="${lot.id}" title="Удалить">🗑</button>
+        <button class="btn btn-ghost" data-action="images" data-lot="${lot.id}" title="Фото">
+          <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="14" rx="2"/><circle cx="8" cy="8" r="2"/><path d="m2 14 4-4 4 4 4-5 6 5"/><path d="M0 20h20" stroke-width="0"/><line x1="4" y1="20" x2="20" y2="20"/><line x1="4" y1="22" x2="16" y2="22"/></svg></span>
+        </button>
+        <button class="btn btn-ghost" data-action="edit" data-lot="${lot.id}" title="Изменить">
+          <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+        </button>
+        <button class="btn btn-ghost" style="color:var(--danger)" data-action="delete" data-lot="${lot.id}" title="Удалить">
+          <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span>
+        </button>
       </div>
     `;
     list.appendChild(card);
@@ -389,6 +409,9 @@ function openLotModal(editLotId) {
   dom.lotModalTitle.textContent = lot ? 'Редактировать лот' : 'Новый лот';
   dom.lotTitleInput.value       = lot ? lot.title          : '';
   dom.lotFunpayInput.value      = lot ? (lot.funpay || '') : '';
+  if (dom.lotOnFunpayInput) {
+    dom.lotOnFunpayInput.checked = lot ? (lot.onFunpay !== false) : false; // новый лот: выключено по умолчанию
+  }
   dom.lotModalStatus.className  = 'status-msg';
   openModal('lotModal');
 }
@@ -396,14 +419,15 @@ function openLotModal(editLotId) {
 async function onLotSave() {
   const title  = dom.lotTitleInput.value.trim();
   const funpay = dom.lotFunpayInput.value.trim();
+  const onFunpay = dom.lotOnFunpayInput ? !!dom.lotOnFunpayInput.checked : false;
   if (!title) { setStatus(dom.lotModalStatus, 'Введите название', 'err'); return; }
   setStatus(dom.lotModalStatus, 'Сохраняю…', 'info');
   try {
     if (state.editingLot) {
       const lot = state.activeLots.find(l => l.id === state.editingLot);
-      if (lot) { lot.title = title; lot.funpay = funpay; }
+      if (lot) { lot.title = title; lot.funpay = funpay; lot.onFunpay = onFunpay; }
     } else {
-      state.activeLots.push({ id: 'lot_' + Date.now(), title, funpay, images: [] });
+      state.activeLots.push({ id: 'lot_' + Date.now(), title, funpay, onFunpay, images: [] });
     }
     await saveLotsJSON();
     setStatus(dom.lotModalStatus, '✓ Сохранено', 'ok');
@@ -481,15 +505,21 @@ function openImageManager(lotId) {
 
   panel.innerHTML = `
     <div class="image-manager-header">
-      <button class="btn btn-ghost" id="im-back">← Назад</button>
-      <div class="image-manager-title">📸 ${esc(lot ? lot.title : lotId)}</div>
-      <button class="btn btn-ghost" id="im-refresh-thumb">🖼 Обновить превью</button>
-      <button class="btn btn-primary" id="im-upload-trigger">+ Добавить фото</button>
+      <button class="btn btn-ghost" id="im-back">
+        <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span> Назад
+      </button>
+      <div class="image-manager-title">${esc(lot ? lot.title : lotId)}</div>
+      <button class="btn btn-ghost" id="im-refresh-thumb">
+        <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span> Обновить превью
+      </button>
+      <button class="btn btn-primary" id="im-upload-trigger">
+        <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span> Добавить фото
+      </button>
     </div>
     <div class="image-manager-body">
       <div class="dropzone" id="im-dropzone">
         <input type="file" id="im-file-input" accept="image/*" multiple>
-        <div class="dropzone-icon">📤</div>
+        <div class="dropzone-icon"><span style="display:inline-flex;align-items:center;vertical-align:middle"><svg style="color:var(--text-muted)" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></span></div>
         <div class="dropzone-text">Перетащите изображения сюда</div>
         <div class="dropzone-hint">PNG, JPG, GIF → WebP</div>
       </div>
@@ -540,14 +570,14 @@ function renderManagedImages() {
     card.dataset.idx = idx;
     card.draggable = true;
     card.innerHTML = `
-      <div class="drag-handle">⠿</div>
+      <div class="drag-handle"><span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg></span></div>
       <img src="../${src}" alt="" loading="lazy">
       <div class="managed-img-footer">
         <span class="managed-img-num">${idx + 1}</span>
         <div class="managed-img-actions">
-          <button class="img-action-btn" data-action="up"   data-idx="${idx}">↑</button>
-          <button class="img-action-btn" data-action="down" data-idx="${idx}">↓</button>
-          <button class="img-action-btn danger" data-action="del" data-idx="${idx}">🗑</button>
+          <button class="img-action-btn" data-action="up"   data-idx="${idx}" title="Вверх"><span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span></button>
+          <button class="img-action-btn" data-action="down" data-idx="${idx}" title="Вниз"><span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></span></button>
+          <button class="img-action-btn danger" data-action="del" data-idx="${idx}" title="Удалить"><span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span></button>
         </div>
       </div>
     `;
@@ -593,14 +623,93 @@ async function saveOrder() {
   try { await saveLotsJSON(); } catch (e) { console.error('saveOrder:', e.message); }
 }
 
+// ── Undo toast ────────────────────────────────────────────────
+let undoToast   = null;
+let undoTimer   = null;
+let undoPending = null; // { path, idx, images: [...до удаления] }
+const UNDO_DURATION = 15000;
+
+function showUndoToast(msg, onUndo) {
+  // Если уже показан — сначала применяем предыдущее
+  if (undoTimer) commitPendingDelete();
+
+  if (!undoToast) {
+    undoToast = document.createElement('div');
+    undoToast.className = 'undo-toast';
+    undoToast.innerHTML = `
+      <span class="undo-toast-text"></span>
+      <button class="undo-toast-btn">Отменить</button>
+      <div class="undo-toast-progress"></div>
+    `;
+    document.body.appendChild(undoToast);
+    undoToast.querySelector('.undo-toast-btn').addEventListener('click', () => {
+      if (undoPending && onUndo) onUndo();
+      hideUndoToast(true);
+    });
+  }
+
+  undoToast.querySelector('.undo-toast-text').textContent = msg;
+  // Обновляем обработчик кнопки
+  const btn = undoToast.querySelector('.undo-toast-btn');
+  btn.onclick = () => { if (undoPending) onUndo(); hideUndoToast(true); };
+
+  // Анимация прогресс-бара
+  const bar = undoToast.querySelector('.undo-toast-progress');
+  bar.style.transition = 'none';
+  bar.style.transform  = 'scaleX(1)';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bar.style.transition = `transform ${UNDO_DURATION}ms linear`;
+    bar.style.transform  = 'scaleX(0)';
+  }));
+
+  requestAnimationFrame(() => undoToast.classList.add('visible'));
+  undoTimer = setTimeout(() => { commitPendingDelete(); hideUndoToast(false); }, UNDO_DURATION);
+}
+
+function hideUndoToast(cancelled) {
+  clearTimeout(undoTimer);
+  undoTimer = null;
+  if (undoToast) undoToast.classList.remove('visible');
+}
+
+async function commitPendingDelete() {
+  if (!undoPending) return;
+  const { path } = undoPending;
+  undoPending = null;
+  try {
+    await GH.deleteFile(path, 'Delete image');
+  } catch (e) {
+    console.error('commitPendingDelete:', e.message);
+  }
+}
+
 async function deleteImage(idx) {
-  if (!confirm('Удалить изображение ' + (idx+1) + '?')) return;
-  const path = imImages[idx];
-  try { await GH.deleteFile(path, 'Delete image'); } catch (e) { if (e.status !== 404) { alert('Ошибка: ' + e.message); return; } }
+  const path         = imImages[idx];
+  const savedImages  = [...imImages];     // снапшот для undo
+  const savedIdx     = idx;
+
+  // Удаляем из UI немедленно
   imImages.splice(idx, 1);
-  await saveOrder();
+  const lot = state.activeLots.find(l => l.id === imLotId);
+  if (lot) lot.images = [...imImages];
   renderManagedImages();
   renderLots();
+
+  // Сохраняем JSON без удалённого файла
+  try { await saveLotsJSON(); } catch (e) { console.error('deleteImage saveJSON:', e.message); }
+
+  undoPending = { path, idx: savedIdx, savedImages };
+
+  showUndoToast(`Фото ${savedIdx + 1} удалено`, async () => {
+    // Отмена — восстанавливаем снапшот
+    imImages = [...savedImages];
+    const lot = state.activeLots.find(l => l.id === imLotId);
+    if (lot) lot.images = [...imImages];
+    undoPending = null;
+    renderManagedImages();
+    renderLots();
+    try { await saveLotsJSON(); } catch (_) {}
+  });
 }
 
 async function regenerateThumb() {
@@ -721,7 +830,12 @@ async function saveLotsJSON() {
 // ════════════════════════════════════════════════════════════════
 function setStatus(el, msg, type) {
   if (!el) return;
-  el.textContent = msg;
+  if (type === 'ok') {
+    el.innerHTML = '<span style="display:inline-flex;align-items:center;vertical-align:middle"><svg style="display:inline-block;vertical-align:middle;margin-right:5px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>' + esc(msg);
+    
+  } else {
+    el.textContent = msg;
+  }
   el.className = 'status-msg visible ' + (type || '');
   if (type === 'ok') setTimeout(() => { el.className = 'status-msg'; }, 3000);
 }

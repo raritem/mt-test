@@ -76,6 +76,74 @@ function showStatus(el, msg, type) {
   }
 }
 
+/** Нормализация текста лота:
+ *  Заменяет математические/bold Unicode символы "ур" и "PREM" на обычные ASCII.
+ *  Например: 𝟏𝟎𝐲𝐩(x3) → 10ур(x3),  𝙋𝙍𝙀𝙈 → PREM
+ */
+function normalizeLotTitle(str) {
+  if (!str) return str;
+
+  // Таблица Unicode→ASCII для bold/italic/sans-serif вариантов
+  const map = {};
+  const ranges = [
+    // Mathematical Bold
+    [0x1D400, 'A'], [0x1D41A, 'a'],
+    // Mathematical Italic
+    [0x1D434, 'A'], [0x1D44E, 'a'],
+    // Mathematical Bold Italic
+    [0x1D468, 'A'], [0x1D482, 'a'],
+    // Mathematical Sans-Serif Bold
+    [0x1D5D4, 'A'], [0x1D5EE, 'a'],
+    // Mathematical Sans-Serif Bold Italic
+    [0x1D63C, 'A'], [0x1D656, 'a'],
+    // Mathematical Monospace
+    [0x1D670, 'A'], [0x1D68A, 'a'],
+    // Digits: Bold
+    [0x1D7CE, '0'],
+    // Digits: Double-struck
+    [0x1D7D8, '0'],
+    // Digits: Sans-serif
+    [0x1D7E2, '0'],
+    // Digits: Sans-serif Bold
+    [0x1D7EC, '0'],
+    // Digits: Monospace
+    [0x1D7F6, '0'],
+  ];
+
+  ranges.forEach(([start, baseChar]) => {
+    const base = baseChar.codePointAt(0);
+    const count = baseChar >= 'a' && baseChar <= 'z' ? 26 :
+                  baseChar >= 'A' && baseChar <= 'Z' ? 26 : 10;
+    for (let i = 0; i < count; i++) {
+      map[String.fromCodePoint(start + i)] = String.fromCodePoint(base + i);
+    }
+  });
+
+  // Применяем замену посимвольно
+  let result = '';
+  for (const ch of str) {
+    result += (map[ch] !== undefined ? map[ch] : ch);
+  }
+
+  // Теперь заменяем "yp" / "ур" (и варианты через ASCII y+p) → "ур"
+  // и "PREM" (уже ASCII после нормализации) остаётся PREM
+  result = result
+    .replace(/yp/g,  'ур')   // ASCII y+p (частый вариант)
+    .replace(/YP/g,  'УР');
+
+  return result;
+}
+
+/** Логотип FunPay как inline img с классом */
+function funpayLogo() {
+  return `<img src="https://funpay.com/img/layout/logo-funpay.svg" alt="FunPay" class="funpay-logo">`;
+}
+
+/** Кнопка "Купить на FunPay" с логотипом */
+function funpayBtn(href, cls) {
+  return `<a href="${href}" target="_blank" rel="noopener" class="${cls || 'funpay-btn'}">Купить на ${funpayLogo(16)}</a>`;
+}
+
 /** Простая анимация добавления элементов */
 function animateIn(parent) {
   Array.from(parent.children).forEach((el, i) => {
@@ -163,6 +231,10 @@ async function loadShop() {
   const headerEl = document.getElementById('shop-header');
   const gridEl   = document.getElementById('lots-grid');
   const bcEl     = document.getElementById('breadcrumb');
+  const tableSectionEl = document.getElementById('lots-table-section');
+  const tableEl        = document.getElementById('lots-table');
+  const qEl            = document.getElementById('lots-filter-q');
+  const resetEl        = document.getElementById('lots-filter-reset');
 
   try {
     const data = await fetchJSON(ROOT + 'data/' + shopId + '.json');
@@ -193,43 +265,119 @@ async function loadShop() {
 
     if (!data.lots || data.lots.length === 0) {
       gridEl.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><h2>Лоты не найдены</h2><p>В этой витрине пока нет лотов</p></div>';
+      if (tableSectionEl) tableSectionEl.style.display = 'none';
       return;
     }
 
+    // Разделяем лоты:
+    // - onFunpay !== false  → показываем в верхней сетке (совместимость со старыми JSON)
+    // - onFunpay === false  → показываем в нижней "таблице"
+    const allLots = Array.isArray(data.lots) ? data.lots : [];
+    const funpayLots  = allLots.filter(l => l && l.onFunpay !== false);
+    const hiddenLots  = allLots.filter(l => l && l.onFunpay === false);
+
     gridEl.innerHTML = '';
 
-    data.lots.forEach((lot, idx) => {
-      const card = document.createElement('a');
-      card.href  = ROOT + 'lot/?shop=' + encodeURIComponent(shopId) + '&id=' + encodeURIComponent(lot.id);
+    funpayLots.forEach((lot, idx) => {
+      const card = document.createElement('div');
       card.className = 'lot-card fade-up';
       card.style.animationDelay = (idx * 0.06) + 's';
 
       const firstImg = lot.images && lot.images[0];
-      // thumb.webp — маленькая миниатюра (~480px), грузится быстро на странице витрины
-      // Генерируется автоматически при загрузке первого фото в менеджере изображений
       const previewSrc = lot.thumb || firstImg;
       const thumbHtml = previewSrc
         ? `<img class="lot-card-thumb" src="${ROOT}${previewSrc}" alt="${esc(lot.title)}" loading="lazy">`
         : `<div class="lot-card-thumb-placeholder">🎯</div>`;
 
-      const count = (lot.images || []).length;
+      const count  = (lot.images || []).length;
+      const lotUrl = ROOT + 'lot/?shop=' + encodeURIComponent(shopId) + '&id=' + encodeURIComponent(lot.id);
+      const title  = normalizeLotTitle(lot.title);
 
       card.innerHTML = `
         ${thumbHtml}
         <div class="lot-card-body">
-          <div class="lot-card-title">${esc(lot.title)}</div>
+          <div class="lot-card-title">${esc(title)}</div>
           <div class="lot-card-images-count">📸 ${count} ${plural(count, 'скриншот', 'скриншота', 'скриншотов')}</div>
-          ${lot.funpay ? `<div class="lot-card-funpay">Купить на FunPay ↗</div>` : ''}
         </div>
+        ${lot.funpay ? `<div class="lot-card-footer"><a href="${lot.funpay}" target="_blank" rel="noopener" class="lot-card-funpay-btn" id="fp-${idx}">Купить на ${funpayLogo(14)}</a></div>` : ''}
       `;
+
+      // Клик по карточке (не по кнопке FunPay) → переход на лот
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.lot-card-funpay-btn')) return;
+        window.location.href = lotUrl;
+      });
 
       gridEl.appendChild(card);
     });
+
+    // Нижняя "таблица" (черновой фильтр — только по названию)
+    if (tableSectionEl && tableEl) {
+      if (hiddenLots.length === 0) {
+        tableSectionEl.style.display = 'none';
+      } else {
+        tableSectionEl.style.display = '';
+
+        const renderHidden = () => {
+          const q = (qEl ? qEl.value : '').trim().toLowerCase();
+          const filtered = !q
+            ? hiddenLots
+            : hiddenLots.filter(l => normalizeLotTitle(l.title || '').toLowerCase().includes(q));
+
+          tableEl.innerHTML = '';
+
+          if (filtered.length === 0) {
+            tableEl.innerHTML = '<div class="empty-state" style="padding:36px 16px"><div class="empty-icon">🔎</div><h2>Ничего не найдено</h2><p>Попробуйте другой запрос</p></div>';
+            return;
+          }
+
+          filtered.forEach((lot, i) => {
+            const row = document.createElement('div');
+            row.className = 'lot-row-card fade-up';
+            row.style.animationDelay = (i * 0.03) + 's';
+
+            const firstImg = lot.images && lot.images[0];
+            const previewSrc = lot.thumb || firstImg;
+            const thumbHtml = previewSrc
+              ? `<img class="lot-row-thumb" src="${ROOT}${previewSrc}" alt="${esc(lot.title)}" loading="lazy">`
+              : `<div class="lot-row-thumb-placeholder">🎯</div>`;
+
+            const title = normalizeLotTitle(lot.title);
+            const tags = Array.isArray(lot.tags) ? lot.tags : [];
+            const tagsHtml = tags.length
+              ? tags.slice(0, 10).map(t => `<span class="lot-row-tag">${esc(String(t))}</span>`).join('')
+              : `<span class="lot-row-tags-empty">Иконки ценности добавим позже</span>`;
+
+            row.innerHTML = `
+              <div class="lot-row-left">
+                ${thumbHtml}
+                <div class="lot-row-mid">
+                  <div class="lot-row-title">${esc(title)}</div>
+                  <div class="lot-row-tags">${tagsHtml}</div>
+                </div>
+              </div>
+              <div class="lot-row-right">
+                ${lot.funpay ? funpayBtn(lot.funpay, 'lot-row-funpay-btn') : '<span class="lot-row-no-funpay">Нет ссылки FunPay</span>'}
+              </div>
+            `;
+
+            tableEl.appendChild(row);
+          });
+        };
+
+        // Привязка фильтра
+        if (qEl) qEl.oninput = renderHidden;
+        if (resetEl) resetEl.onclick = () => { if (qEl) qEl.value = ''; renderHidden(); };
+
+        renderHidden();
+      }
+    }
 
   } catch (e) {
     if (gridEl) {
       gridEl.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><h2>Не удалось загрузить витрину</h2><p>' + esc(e.message) + '</p></div>';
     }
+    if (tableSectionEl) tableSectionEl.style.display = 'none';
   }
 }
 
@@ -254,30 +402,35 @@ async function loadLot() {
 
     if (!lot) throw new Error('Лот не найден');
 
-    document.title = lot.title + ' — WoT Shop';
+    const title = normalizeLotTitle(lot.title);
+    document.title = title + ' — WoT Shop';
 
-    // Хлебные крошки
+    // Хлебные крошки — с overflow truncation на мобиле
     if (bcEl) {
       bcEl.innerHTML = `
         <a href="${ROOT}index.html">Главная</a>
         <span class="sep">/</span>
-        <a href="${ROOT}shop/?id=${encodeURIComponent(shopId)}">${esc(data.name || shopId)}</a>
+        <a href="${ROOT}shop/?id=${encodeURIComponent(shopId)}" class="bc-shop">${esc(data.name || shopId)}</a>
         <span class="sep">/</span>
-        <span class="current">${esc(lot.title)}</span>
+        <span class="current bc-lot">${esc(title)}</span>
       `;
     }
 
     // Заголовок лота
     if (headerEl) {
-      const funpayBtn = lot.funpay
-        ? `<a href="${lot.funpay}" target="_blank" rel="noopener" class="funpay-btn">🛒 Купить на FunPay</a>`
+      const fp = lot.funpay
+        ? `<a href="${lot.funpay}" target="_blank" rel="noopener" class="funpay-btn">Купить на ${funpayLogo(16)}</a>`
         : '';
       headerEl.innerHTML = `
-        <div>
-          <h1 class="lot-title">${esc(lot.title)}</h1>
-          <p style="color:var(--text-muted);font-size:13px;margin-top:6px">📸 ${(lot.images||[]).length} скриншотов</p>
+        <div class="lot-header-top">
+          <a href="${ROOT}shop/?id=${encodeURIComponent(shopId)}" class="btn btn-ghost back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Назад
+          </a>
+          ${fp}
         </div>
-        ${funpayBtn}
+        <h1 class="lot-title">${esc(title)}</h1>
+        <p style="color:var(--text-muted);font-size:13px;margin-top:4px">📸 ${(lot.images||[]).length} скриншотов</p>
       `;
     }
 
