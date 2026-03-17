@@ -434,7 +434,7 @@ input, textarea { font-family: var(--font-body); }
   padding: 6px 20px 6px 6px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 14px;
   transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.24s var(--ease-smooth);
 }
@@ -915,20 +915,12 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
 /* ── Анимации появления ──────────────────────────────────────── */
 @keyframes fadeUp {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .fade-up {
   animation: fadeUp 0.4s ease both;
-  will-change: opacity;
+  will-change: opacity, transform;
 }
 
-.fade-up:nth-child(1) { animation-delay: 0.05s; }
-.fade-up:nth-child(2) { animation-delay: 0.10s; }
-.fade-up:nth-child(3) { animation-delay: 0.15s; }
-.fade-up:nth-child(4) { animation-delay: 0.20s; }
-.fade-up:nth-child(5) { animation-delay: 0.25s; }
-.fade-up:nth-child(6) { animation-delay: 0.30s; }
-.fade-up:nth-child(7) { animation-delay: 0.35s; }
-.fade-up:nth-child(8) { animation-delay: 0.40s; }

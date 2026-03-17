@@ -165,7 +165,9 @@ window.LightBox = (() => {
 
   // ── Рендер ────────────────────────────────────────────────────
   function render(dir, fromThumbs) {
-    const src = ROOT + images[current];
+    const src = (typeof assetUrl === 'function')
+      ? assetUrl(images[current])
+      : (ROOT + images[current]);
     lbCounter.textContent = (current + 1) + ' / ' + images.length;
     lbPrev.disabled = current === 0;
     lbNext.disabled = current === images.length - 1;
@@ -205,7 +207,8 @@ window.LightBox = (() => {
     images.forEach((src, i) => {
       const tn = document.createElement('div');
       tn.className = 'lb-tn' + (i === current ? ' active' : '');
-      tn.innerHTML = `<img src="${ROOT}${src}" alt="" loading="lazy">`;
+      const u = (typeof assetUrl === 'function') ? assetUrl(src) : (ROOT + src);
+      tn.innerHTML = `<img src="${u}" alt="" loading="lazy">`;
       tn.addEventListener('click', () => {
         if (i === current) return;
         const dir = i > current ? 'next' : 'prev';

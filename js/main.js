@@ -79,7 +79,11 @@ function bindFadeCleanup() {
     el.classList.remove('fade-up');
     el.style.animationDelay = '';
     el.style.willChange = '';
+    // Возвращаем чистое финальное состояние (без inline-стилей),
+    // чтобы не страдала резкость после анимации.
     el.style.opacity = '';
+    el.style.transform = '';
+    el.style.animation = '';
   }, true);
 }
 
@@ -92,6 +96,23 @@ function setBrandTitle(text) {
 function setBrandHref(href) {
   const a = document.querySelector('a.logo');
   if (a && href) a.setAttribute('href', href);
+}
+
+// ── Fade helpers ────────────────────────────────────────────────
+function applyFadeUpStagger(parent, selector, stepSec) {
+  if (!parent) return;
+  const items = Array.from(parent.querySelectorAll(selector));
+  items.forEach((el, i) => {
+    if (!(el instanceof HTMLElement)) return;
+    // Гарантируем старт анимации даже при быстром ререндере/повторном показе
+    el.classList.remove('fade-up');
+    el.style.animation = 'none';
+    el.style.opacity = '0';
+    void el.offsetHeight; // force reflow
+    el.style.animation = '';
+    el.classList.add('fade-up');
+    el.style.animationDelay = ((i * (stepSec || 0.05))).toFixed(3) + 's';
+  });
 }
 
 // ── Утилиты ─────────────────────────────────────────────────────
@@ -340,10 +361,9 @@ async function loadShop() {
 
     gridEl.innerHTML = '';
 
-    funpayLots.forEach((lot, idx) => {
+    funpayLots.forEach((lot) => {
       const card = document.createElement('div');
-      card.className = 'lot-card fade-up';
-      card.style.animationDelay = (idx * 0.06) + 's';
+      card.className = 'lot-card';
 
       const firstImg = lot.images && lot.images[0];
       const previewSrc = lot.thumb || firstImg;
@@ -361,7 +381,7 @@ async function loadShop() {
           <div class="lot-card-title">${esc(title)}</div>
           <div class="lot-card-images-count">📸 ${count} ${plural(count, 'скриншот', 'скриншота', 'скриншотов')}</div>
         </div>
-        ${lot.funpay ? `<div class="lot-card-footer"><a href="${lot.funpay}" target="_blank" rel="noopener" class="lot-card-funpay-btn" id="fp-${idx}">Купить на ${funpayLogo(14)}</a></div>` : ''}
+        ${lot.funpay ? `<div class="lot-card-footer"><a href="${lot.funpay}" target="_blank" rel="noopener" class="lot-card-funpay-btn">Купить на ${funpayLogo(14)}</a></div>` : ''}
       `;
 
       // Клик по карточке (не по кнопке FunPay) → переход на лот
@@ -372,6 +392,7 @@ async function loadShop() {
 
       gridEl.appendChild(card);
     });
+    applyFadeUpStagger(gridEl, '.lot-card', 0.06);
 
     // Нижняя "таблица" (черновой фильтр — только по названию)
     if (tableSectionEl && tableEl) {
@@ -379,6 +400,19 @@ async function loadShop() {
         tableSectionEl.style.display = 'none';
       } else {
         tableSectionEl.style.display = '';
+
+        // Анимация таблицы — только когда доскроллили до секции
+        if (!tableSectionEl.dataset.ioBound) {
+          tableSectionEl.dataset.ioBound = '1';
+          const io = new IntersectionObserver((entries) => {
+            const e = entries[0];
+            if (!e || !e.isIntersecting) return;
+            tableSectionEl.dataset.seen = '1';
+            applyFadeUpStagger(tableEl, '.lot-row-card', 0.03);
+            io.disconnect();
+          }, { threshold: 0.08 });
+          io.observe(tableSectionEl);
+        }
 
         const renderHidden = () => {
           const q = (qEl ? qEl.value : '').trim().toLowerCase();
@@ -395,8 +429,7 @@ async function loadShop() {
 
           filtered.forEach((lot, i) => {
             const row = document.createElement('div');
-            row.className = 'lot-row-card fade-up';
-            row.style.animationDelay = (i * 0.03) + 's';
+            row.className = 'lot-row-card';
 
             const firstImg = lot.images && lot.images[0];
             const previewSrc = lot.thumb || firstImg;
@@ -418,19 +451,20 @@ async function loadShop() {
                   <div class="lot-row-tags">${tagsHtml}</div>
                 </div>
               </div>
-              <div class="lot-row-right">
-                ${lot.funpay ? funpayBtn(lot.funpay, 'lot-row-funpay-btn') : '<span class="lot-row-no-funpay">Нет ссылки FunPay</span>'}
-              </div>
             `;
 
             const lotUrl = ROOT + 'lot/?shop=' + encodeURIComponent(shopId) + '&id=' + encodeURIComponent(lot.id);
             row.addEventListener('click', (e) => {
-              if (e.target.closest('.lot-row-funpay-btn')) return;
               window.location.href = lotUrl;
             });
 
             tableEl.appendChild(row);
           });
+
+          // Если секция уже была показана — анимируем новые результаты фильтра сразу
+          if (tableSectionEl.dataset.seen === '1') {
+            applyFadeUpStagger(tableEl, '.lot-row-card', 0.03);
+          }
         };
 
         // Привязка фильтра
@@ -518,11 +552,10 @@ async function loadLot() {
 
     images.forEach((src, idx) => {
       const thumb = document.createElement('div');
-      thumb.className = 'gallery-thumb fade-up';
-      thumb.style.animationDelay = (idx * 0.04) + 's';
+      thumb.className = 'gallery-thumb';
       thumb.dataset.index = idx;
       thumb.innerHTML = `
-        <img src="${ROOT}${src}" alt="Скриншот ${idx+1}" loading="lazy" class="loading">
+        <img src="${assetUrl(src)}" alt="Скриншот ${idx+1}" loading="lazy" class="loading">
         <div class="gallery-thumb-overlay">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" style="display:none"/>
@@ -544,6 +577,7 @@ async function loadLot() {
 
       gridEl.appendChild(thumb);
     });
+    applyFadeUpStagger(gridEl, '.gallery-thumb', 0.04);
 
     // Инициализируем лайтбокс с изображениями
     if (window.LightBox) {
