@@ -406,6 +406,19 @@ async function loadShop() {
       } else {
         tableSectionEl.style.display = '';
 
+        // Анимация таблицы — только когда доскроллили до секции
+        if (!tableSectionEl.dataset.ioBound) {
+          tableSectionEl.dataset.ioBound = '1';
+          const io = new IntersectionObserver((entries) => {
+            const e = entries[0];
+            if (!e || !e.isIntersecting) return;
+            tableSectionEl.dataset.seen = '1';
+            applyFadeUpStagger(tableEl, '.lot-row-card', 0.03);
+            io.disconnect();
+          }, { threshold: 0.08 });
+          io.observe(tableSectionEl);
+        }
+
         const renderHidden = () => {
           const q = (qEl ? qEl.value : '').trim().toLowerCase();
           const filtered = !q
@@ -419,13 +432,9 @@ async function loadShop() {
             return;
           }
 
-          // Строки всегда рендерим с fade-prep — они невидимы до тех пор пока
-          // IO не запустит анимацию. Если IO уже сработал (seen=1), сразу видимые.
-          const alreadySeen = tableSectionEl.dataset.seen === '1';
-
           filtered.forEach((lot, i) => {
             const row = document.createElement('div');
-            row.className = alreadySeen ? 'lot-row-card' : 'lot-row-card fade-prep';
+            row.className = 'lot-row-card fade-prep';
 
             const firstImg = lot.images && lot.images[0];
             const previewSrc = lot.thumb || firstImg;
@@ -456,28 +465,17 @@ async function loadShop() {
 
             tableEl.appendChild(row);
           });
+
+          // Если секция уже была показана — анимируем новые результаты фильтра сразу
+          if (tableSectionEl.dataset.seen === '1') {
+            applyFadeUpStagger(tableEl, '.lot-row-card', 0.03);
+          }
         };
 
         // Привязка фильтра
-        if (qEl) qEl.oninput = () => renderHidden();
+        if (qEl) qEl.oninput = renderHidden;
 
-        // Первый рендер — строки в fade-prep (невидимы), IO запустит анимацию
         renderHidden();
-
-        // IO запускает анимацию на уже готовых строках — без повторного рендера.
-        // Так нет двойного рендера и нет дёрганья.
-        if (!tableSectionEl.dataset.ioBound) {
-          tableSectionEl.dataset.ioBound = '1';
-          const io = new IntersectionObserver((entries) => {
-            const e = entries[0];
-            if (!e.isIntersecting) return;
-            if (tableSectionEl.dataset.seen === '1') return;
-            tableSectionEl.dataset.seen = '1';
-            applyFadeUpStagger(tableEl, '.lot-row-card', 0.03);
-            io.disconnect();
-          }, { threshold: 0, rootMargin: '0px 0px -120px 0px' });
-          io.observe(tableEl);
-        }
       }
     }
 
