@@ -324,7 +324,7 @@ function renderLots() {
     card.innerHTML = `
       ${thumb}
       <div class="admin-lot-info">
-        <div class="admin-lot-title">${esc(lot.title)} ${badge}</div>
+        <div class="admin-lot-title">${escWithBr(lot.title)} ${badge}</div>
         <div class="admin-lot-meta">
           <span>${(lot.images || []).length} фото</span>
           ${lot.funpay ? `<a href="${lot.funpay}" target="_blank" style="color:var(--accent)">FunPay <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg style="display:inline-block;vertical-align:middle" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span></a>` : ''}
@@ -883,4 +883,10 @@ function esc(str) {
   const d = document.createElement('div');
   d.textContent = String(str || '');
   return d.innerHTML;
+}
+
+function escWithBr(str) {
+  const d = document.createElement('div');
+  d.textContent = String(str || '');
+  return d.innerHTML.replace(/\n/g, '<br>');
 }

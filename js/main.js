@@ -142,6 +142,12 @@ function esc(str) {
   return d.innerHTML;
 }
 
+function escWithBr(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML.replace(/\n/g, '<br>');
+}
+
 /** Показать статус в элементе */
 function showStatus(el, msg, type) {
   if (!el) return;
@@ -383,7 +389,7 @@ async function loadShop() {
       card.innerHTML = `
         ${thumbHtml}
         <div class="lot-card-body">
-          <div class="lot-card-title">${esc(title)}</div>
+          <div class="lot-card-title">${escWithBr(title)}</div>
           <div class="lot-card-images-count">📸 ${count} ${plural(count, 'скриншот', 'скриншота', 'скриншотов')}</div>
         </div>
         ${lot.funpay ? `<div class="lot-card-footer"><a href="${lot.funpay}" target="_blank" rel="noopener" class="lot-card-funpay-btn">Купить на ${funpayLogo(14)}</a></div>` : ''}
@@ -443,7 +449,7 @@ async function loadShop() {
               <div class="lot-row-left">
                 ${thumbHtml}
                 <div class="lot-row-mid">
-                  <div class="lot-row-title">${esc(title)}</div>
+                  <div class="lot-row-title">${escWithBr(title)}</div>
                   <div class="lot-row-tags">${tagsHtml}</div>
                 </div>
               </div>
@@ -541,7 +547,7 @@ async function loadLot() {
           </a>
           ${fp}
         </div>
-        <h1 class="lot-title">${esc(title)}</h1>
+        <h1 class="lot-title">${escWithBr(title)}</h1>
         <p style="color:var(--text-muted);font-size:13px;margin-top:4px">📸 ${(lot.images||[]).length} скриншотов</p>
       `;
     }

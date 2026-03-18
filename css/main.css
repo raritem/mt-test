@@ -268,7 +268,7 @@ input, textarea { font-family: var(--font-body); }
 
 .lot-card {
   background: var(--bg-card);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;
@@ -429,7 +429,7 @@ input, textarea { font-family: var(--font-body); }
 
 .lot-row-card {
   background: var(--bg-card);
-  border: 0px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 6px 20px 6px 6px;
   display: flex;
@@ -456,14 +456,13 @@ input, textarea { font-family: var(--font-body); }
 
 .lot-row-thumb,
 .lot-row-thumb-placeholder {
-  width: 120px;
-  height: 90px;
+  width: 140px;
+  height: 79px;
   border-radius: 12px;
   flex-shrink: 0;
   border: 0px solid var(--border);
   background: #111418;
   object-fit: cover;
-  /* ── "Таблица" лотов (горизонтальные карточки) ────────────────── filter: brightness(1);*/
 }
 
 .lot-row-thumb-placeholder {
