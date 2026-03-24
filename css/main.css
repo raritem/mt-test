@@ -287,12 +287,12 @@ input, textarea { font-family: var(--font-body); }
 }
 
 .lot-card-thumb {
-  width: 100%;
+  width: calc(100% - 10px);
   aspect-ratio: 16/12;
   object-fit: cover;
   display: block;
-  padding: 5px;
-  border-radius: 16px;
+  margin: 5px;
+  border-radius: 12px;
 }
 
 .lot-card-thumb-placeholder {
