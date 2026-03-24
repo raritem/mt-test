@@ -288,17 +288,19 @@ input, textarea { font-family: var(--font-body); }
 
 .lot-card-thumb {
   width: 100%;
-  aspect-ratio: 16/9;
+  aspect-ratio: 16/12;
   object-fit: cover;
   /* display:block убирает нижний зазор, image-rendering убирает замыленность */
   display: block;
   image-rendering: auto;
   background: #0d1117;
+  padding: 5px;
+  border-radius: 16px;
 }
 
 .lot-card-thumb-placeholder {
   width: 100%;
-  aspect-ratio: 16/9;
+  aspect-ratio: 16/12;
   background: linear-gradient(135deg, #111418, #0d1117);
   display: flex;
   align-items: center;
@@ -308,7 +310,7 @@ input, textarea { font-family: var(--font-body); }
 }
 
 .lot-card-body {
-  padding: 18px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -331,7 +333,7 @@ input, textarea { font-family: var(--font-body); }
 
 /* Кнопка FunPay внизу карточки */
 .lot-card-footer {
-  padding: 0 16px 16px;
+  padding: 0 10px 10px;
 }
 
 .lot-card-funpay-btn {
