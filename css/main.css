@@ -293,7 +293,6 @@ input, textarea { font-family: var(--font-body); }
   /* display:block убирает нижний зазор, image-rendering убирает замыленность */
   display: block;
   image-rendering: auto;
-  background: #0d1117;
   padding: 5px;
   border-radius: 16px;
 }
