@@ -751,7 +751,7 @@ async function regenerateThumb() {
     if (bytes[0] === 0x47 && bytes[1] === 0x49) mime = 'image/gif';
 
     const file = new File([new Blob([bytes], { type: mime })], 'source', { type: mime });
-    const { base64, ext } = await ImageConvert.toWebP(file, 0.85, 600);
+    const { base64, ext } = await ImageConvert.toWebP(file, 0.90, 1600);
     const thumbPath = 'images/' + state.activeShop + '/' + imLotId + '/thumb.' + ext;
     const sha = await GH.getFileSha(thumbPath);
     await GH.putBinaryFile(thumbPath, base64, 'Regenerate thumb', sha || undefined);
@@ -820,7 +820,7 @@ async function uploadFiles(files) {
       // Thumb для первого фото лота
       if (imImages.length === 0 && i === 0) {
         try {
-          const { base64: tB64, ext: tExt } = await ImageConvert.toWebP(file, 0.85, 600);
+          const { base64: tB64, ext: tExt } = await ImageConvert.toWebP(file, 0.90, 1600);
           const thumbPath = baseDir + '/thumb.' + tExt;
           const thumbSha  = await GH.getFileSha(thumbPath);
           await GH.putBinaryFile(thumbPath, tB64, 'Thumb for ' + imLotId, thumbSha || undefined);
