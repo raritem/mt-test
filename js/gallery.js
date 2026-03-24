@@ -12,6 +12,7 @@ window.LightBox = (() => {
   const lb        = document.getElementById('lightbox');
   const lbBg      = document.getElementById('lb-bg');
   const lbClose   = document.getElementById('lb-close');
+  const lbBack    = document.getElementById('lb-back');
   const lbPrev    = document.getElementById('lb-prev');
   const lbNext    = document.getElementById('lb-next');
   const lbImg     = document.getElementById('lb-img');
@@ -246,6 +247,7 @@ window.LightBox = (() => {
 
   // ── Кнопки ────────────────────────────────────────────────────
   lbClose.addEventListener('click', close);
+  if (lbBack) lbBack.addEventListener('click', close);
   lbBg.addEventListener('click', (e) => { if (e.target === lbBg) close(); });
   lbPrev.addEventListener('click', prev);
   lbNext.addEventListener('click', next);

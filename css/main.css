@@ -290,9 +290,7 @@ input, textarea { font-family: var(--font-body); }
   width: 100%;
   aspect-ratio: 16/12;
   object-fit: cover;
-  /* display:block убирает нижний зазор, image-rendering убирает замыленность */
   display: block;
-  image-rendering: auto;
   padding: 5px;
   border-radius: 16px;
 }
