@@ -253,24 +253,17 @@ input, textarea { font-family: var(--font-body); }
 .shop-title span { color: #e1e1e1; }
 
 /* ── Сетка лотов — несколько колонок на ПК ───────────────────── */
-/* ── Сетка лотов ──────────────────────────────────────────────
-   Регулировка ширины карточки: меняй --lot-card-width
-   Количество колонок вычисляется автоматически.
-   ─────────────────────────────────────────────────────────── */
-:root {
-  --lot-card-width: 220px;
-}
-
 .lots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--lot-card-width), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 }
-@media (max-width: 600px) {
-  .lots-grid { gap: 12px; }
+
+@media (max-width: 768px) {
+  .lots-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
 }
-@media (max-width: 420px) {
-  .lots-grid { grid-template-columns: 1fr; gap: 10px; }
+@media (max-width: 480px) {
+  .lots-grid { grid-template-columns: 1fr; }
 }
 
 .lot-card {
@@ -294,12 +287,12 @@ input, textarea { font-family: var(--font-body); }
 }
 
 .lot-card-thumb {
-  width: 100%;
+  width: calc(100% - 10px);
   aspect-ratio: 16/12;
   object-fit: cover;
   display: block;
-  padding: 5px;
-  border-radius: 16px;
+  margin: 5px;
+  border-radius: 12px;
 }
 
 .lot-card-thumb-placeholder {
@@ -661,7 +654,7 @@ main.container { min-height: calc(100vh - 64px - 80px); }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px 8px 6px;
+  padding: 6px;
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
