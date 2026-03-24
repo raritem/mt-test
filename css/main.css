@@ -430,7 +430,7 @@ input, textarea { font-family: var(--font-body); }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 6px 20px 6px 6px;
+  padding: 5px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
