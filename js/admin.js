@@ -331,13 +331,13 @@ function renderLots() {
         </div>
       </div>
       <div class="admin-lot-actions">
-        <button class="btn btn-ghost" data-action="images" data-lot="${lot.id}" title="Фото">
-          <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="14" rx="2"/><circle cx="8" cy="8" r="2"/><path d="m2 14 4-4 4 4 4-5 6 5"/><path d="M0 20h20" stroke-width="0"/><line x1="4" y1="20" x2="20" y2="20"/><line x1="4" y1="22" x2="16" y2="22"/></svg></span>
+        <button class="btn btn-ghost btn-no-border" data-action="images" data-lot="${lot.id}" title="Фото">
+          <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></span>
         </button>
-        <button class="btn btn-ghost" data-action="edit" data-lot="${lot.id}" title="Изменить">
+        <button class="btn btn-ghost btn-no-border" data-action="edit" data-lot="${lot.id}" title="Изменить">
           <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
         </button>
-        <button class="btn btn-ghost" style="color:var(--danger)" data-action="delete" data-lot="${lot.id}" title="Удалить">
+        <button class="btn btn-ghost btn-no-border" style="color:var(--danger)" data-action="delete" data-lot="${lot.id}" title="Удалить">
           <span style="display:inline-flex;align-items:center;vertical-align:middle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span>
         </button>
       </div>

@@ -654,7 +654,7 @@ main.container { min-height: calc(100vh - 64px - 80px); }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px 8px 6px;
+  padding: 6px;
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
@@ -679,6 +679,11 @@ main.container { min-height: calc(100vh - 64px - 80px); }
   background: rgba(255,255,255,0.04);
   color: var(--text);
   border-color: rgba(255,255,255,0.12);
+}
+
+.btn-no-border,
+.btn-no-border:hover {
+  border-color: transparent;
 }
 
 .btn-outline {

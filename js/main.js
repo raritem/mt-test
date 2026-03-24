@@ -392,12 +392,10 @@ async function loadShop() {
           <div class="lot-card-title">${escWithBr(title)}</div>
           <div class="lot-card-images-count">📸 ${count} ${plural(count, 'скриншот', 'скриншота', 'скриншотов')}</div>
         </div>
-        ${lot.funpay ? `<div class="lot-card-footer"><a href="${lot.funpay}" target="_blank" rel="noopener" class="lot-card-funpay-btn">Купить на ${funpayLogo(14)}</a></div>` : ''}
       `;
 
-      // Клик по карточке (не по кнопке FunPay) → переход на лот
+      // Клик по карточке → переход на лот
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.lot-card-funpay-btn')) return;
         window.location.href = lotUrl;
       });
 
