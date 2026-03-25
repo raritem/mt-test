@@ -282,7 +282,7 @@ input, textarea { font-family: var(--font-body); }
 .lot-card:hover {
   background: var(--bg-card-hover);
   /*border-color: rgba(245,197,24,0.2);*/
-  transform: translateY(-3px);
+  /*transform: translateY(-3px);*/
   box-shadow: 0 12px 44px rgba(0,0,0,0.62);
 }
 
@@ -315,7 +315,7 @@ input, textarea { font-family: var(--font-body); }
 }
 
 .lot-card-title {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
   line-height: 1.4;
@@ -481,7 +481,7 @@ input, textarea { font-family: var(--font-body); }
 }
 
 .lot-row-title {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text);
   line-height: 1.35;
