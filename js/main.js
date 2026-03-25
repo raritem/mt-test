@@ -394,8 +394,8 @@ async function loadShop() {
         ${thumbHtml}
         <div class="lot-card-body">
           <div class="lot-card-title">${escWithBr(title)}</div>
-          ${resHtml ? `<div class="lot-card-resources">${resHtml}</div>` : ''}
           <div class="lot-card-images-count">📸 ${count} ${plural(count, 'скриншот', 'скриншота', 'скриншотов')}</div>
+          ${resHtml ? `<div class="lot-card-resources">${resHtml}</div>` : ''}
         </div>
       `;
 

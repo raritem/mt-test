@@ -30,11 +30,11 @@ function formatResourceFull(n) {
 function formatResourceShort(n) {
   if (n >= 1_000_000) {
     const val = Math.floor(n / 100_000) / 10;
-    return val % 1 === 0 ? val + ' млн' : val.toFixed(1).replace('.', '.') + ' млн';
+    return val % 1 === 0 ? val + 'М' : val.toFixed(1) + 'М';
   }
   if (n >= 1_000) {
     const val = Math.floor(n / 100) / 10;
-    return val % 1 === 0 ? val + 'К' : val.toFixed(1).replace('.', '.') + 'К';
+    return val % 1 === 0 ? val + 'К' : val.toFixed(1) + 'К';
   }
   return String(n);
 }
@@ -48,19 +48,19 @@ function formatResourceShort(n) {
 function renderResourceIcons(resources, mode) {
   if (!resources) return '';
   const order = [
-    { key: 'bonds',  icon: RESOURCE_ICONS.bonds,  label: 'Боны'    },
-    { key: 'gold',   icon: RESOURCE_ICONS.gold,   label: 'Золото'  },
-    { key: 'silver', icon: RESOURCE_ICONS.silver, label: 'Серебро' },
+    { key: 'bonds',  icon: RESOURCE_ICONS.bonds,  label: 'Боны',    mod: 'bonds'  },
+    { key: 'gold',   icon: RESOURCE_ICONS.gold,   label: 'Золото',  mod: 'gold'   },
+    { key: 'silver', icon: RESOURCE_ICONS.silver, label: 'Серебро', mod: 'silver' },
   ];
   const items = order
-    .map(({ key, icon, label }) => {
+    .map(({ key, icon, label, mod }) => {
       const n = parseResource(resources[key]);
       if (n === null) return '';
       const displayVal = mode === 'full' ? formatResourceFull(n) : formatResourceShort(n);
-      return `<span class="resource-icon" tabindex="0">
-        <img src="${icon}" alt="${label}" class="resource-icon-img" width="20" height="20">
-        <span class="resource-tooltip">${displayVal}</span>
-      </span>`;
+      return `<span class="resource-item">` +
+        `<img src="${icon}" alt="${label}" class="resource-icon-img resource-icon-img--${mod}">` +
+        `<span class="resource-value">${displayVal}</span>` +
+        `</span>`;
     })
     .filter(Boolean);
   if (items.length === 0) return '';
