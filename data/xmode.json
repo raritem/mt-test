@@ -25,7 +25,12 @@
         "images/xmode/lot_1773309676444/005.webp",
         "images/xmode/lot_1773309676444/012.webp"
       ],
-      "thumb": "images/xmode/lot_1773309676444/thumb.webp"
+      "thumb": "images/xmode/lot_1773309676444/thumb.webp",
+      "resources": {
+        "bonds": "12945",
+        "gold": "4560",
+        "silver": "8568930"
+      }
     },
     {
       "id": "lot_1773309692187",
@@ -39,7 +44,11 @@
         "images/xmode/lot_1773309692187/003.webp",
         "images/xmode/lot_1773309692187/004.webp"
       ],
-      "thumb": "images/xmode/lot_1773309692187/thumb.webp"
+      "thumb": "images/xmode/lot_1773309692187/thumb.webp",
+      "resources": {
+        "bonds": "7000",
+        "silver": "1200000"
+      }
     },
     {
       "id": "lot_1773309712036",
@@ -52,7 +61,10 @@
         "images/xmode/lot_1773309712036/002.webp",
         "images/xmode/lot_1773309712036/003.webp"
       ],
-      "thumb": "images/xmode/lot_1773309712036/thumb.webp"
+      "thumb": "images/xmode/lot_1773309712036/thumb.webp",
+      "resources": {
+        "gold": "25000"
+      }
     },
     {
       "id": "lot_1773309726201",

@@ -931,3 +931,64 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   animation: fadeUp 0.4s ease both;
 }
 
+
+/* ── Resource icons ──────────────────────────────────────────── */
+.resource-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.resource-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: default;
+  outline: none;
+}
+
+.resource-icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  flex-shrink: 0;
+}
+
+/* Тултип: появляется слева от иконки, растворяется вправо */
+.resource-tooltip {
+  position: absolute;
+  right: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  pointer-events: none;
+
+  /* Маскируем: левый край непрозрачный, правый — прозрачный */
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 60%, transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black 60%, transparent 100%);
+
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.resource-icon:hover .resource-tooltip,
+.resource-icon:focus .resource-tooltip {
+  opacity: 1;
+}
+
+/* В lot-row-tags вместо тегов — иконки */
+.lot-row-tags .resource-icons {
+  gap: 8px;
+}
+
+/* В lot-card-body */
+.lot-card-body .resource-icons {
+  gap: 6px;
+}

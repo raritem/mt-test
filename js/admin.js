@@ -435,8 +435,28 @@ function openLotModal(editLotId) {
   dom.lotTitleInput.value       = lot ? lot.title          : '';
   dom.lotFunpayInput.value      = lot ? (lot.funpay || '') : '';
   if (dom.lotOnFunpayInput) {
-    dom.lotOnFunpayInput.checked = lot ? (lot.onFunpay !== false) : false; // новый лот: выключено по умолчанию
+    dom.lotOnFunpayInput.checked = lot ? (lot.onFunpay !== false) : false;
   }
+
+  // Заполняем поля ресурсов
+  const res = (lot && lot.resources) ? lot.resources : {};
+  const bondsEl  = $('lot-bonds-input');
+  const goldEl   = $('lot-gold-input');
+  const silverEl = $('lot-silver-input');
+  if (bondsEl)  bondsEl.value  = res.bonds  !== undefined ? res.bonds  : '';
+  if (goldEl)   goldEl.value   = res.gold   !== undefined ? res.gold   : '';
+  if (silverEl) silverEl.value = res.silver !== undefined ? res.silver : '';
+
+  // Вставляем иконки в поля ресурсов
+  if (typeof RESOURCE_ICONS !== 'undefined') {
+    const iconBonds  = $('res-icon-bonds');
+    const iconGold   = $('res-icon-gold');
+    const iconSilver = $('res-icon-silver');
+    if (iconBonds)  iconBonds.src  = RESOURCE_ICONS.bonds;
+    if (iconGold)   iconGold.src   = RESOURCE_ICONS.gold;
+    if (iconSilver) iconSilver.src = RESOURCE_ICONS.silver;
+  }
+
   dom.lotModalStatus.className  = 'status-msg';
   openModal('lotModal');
 }
@@ -446,13 +466,29 @@ async function onLotSave() {
   const funpay = dom.lotFunpayInput.value.trim();
   const onFunpay = dom.lotOnFunpayInput ? !!dom.lotOnFunpayInput.checked : false;
   if (!title) { setStatus(dom.lotModalStatus, 'Введите название', 'err'); return; }
+
+  // Читаем ресурсы, очищаем пробелы
+  const bondsRaw  = ($('lot-bonds-input')  ? $('lot-bonds-input').value  : '').replace(/\s+/g, '');
+  const goldRaw   = ($('lot-gold-input')   ? $('lot-gold-input').value   : '').replace(/\s+/g, '');
+  const silverRaw = ($('lot-silver-input') ? $('lot-silver-input').value : '').replace(/\s+/g, '');
+
+  const resources = {};
+  if (bondsRaw  !== '') resources.bonds  = bondsRaw;
+  if (goldRaw   !== '') resources.gold   = goldRaw;
+  if (silverRaw !== '') resources.silver = silverRaw;
+
   setStatus(dom.lotModalStatus, 'Сохраняю…', 'info');
   try {
     if (state.editingLot) {
       const lot = state.activeLots.find(l => l.id === state.editingLot);
-      if (lot) { lot.title = title; lot.funpay = funpay; lot.onFunpay = onFunpay; }
+      if (lot) {
+        lot.title = title; lot.funpay = funpay; lot.onFunpay = onFunpay;
+        lot.resources = Object.keys(resources).length ? resources : undefined;
+      }
     } else {
-      state.activeLots.push({ id: 'lot_' + Date.now(), title, funpay, onFunpay, images: [] });
+      const newLot = { id: 'lot_' + Date.now(), title, funpay, onFunpay, images: [] };
+      if (Object.keys(resources).length) newLot.resources = resources;
+      state.activeLots.push(newLot);
     }
     await saveLotsJSON();
     setStatus(dom.lotModalStatus, 'Сохранено', 'ok');

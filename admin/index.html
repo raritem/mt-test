@@ -136,6 +136,24 @@
         <label>Ссылка на FunPay</label>
         <input type="url" id="lot-funpay-input" placeholder="https://funpay.com/lots/...">
       </div>
+      <div class="form-group" id="resources-form-group">
+        <label>Ресурсы аккаунта</label>
+        <div class="resource-fields" id="resource-fields">
+          <div class="resource-field-row">
+            <img id="res-icon-bonds" class="resource-field-icon" alt="Боны">
+            <input type="text" id="lot-bonds-input" placeholder="Боны (напр. 11200)" inputmode="numeric">
+          </div>
+          <div class="resource-field-row">
+            <img id="res-icon-gold" class="resource-field-icon" alt="Золото">
+            <input type="text" id="lot-gold-input" placeholder="Золото (напр. 4560)" inputmode="numeric">
+          </div>
+          <div class="resource-field-row">
+            <img id="res-icon-silver" class="resource-field-icon" alt="Серебро">
+            <input type="text" id="lot-silver-input" placeholder="Серебро (напр. 8568930)" inputmode="numeric">
+          </div>
+        </div>
+        <p class="form-hint">Оставьте поле пустым — ресурс не будет показан</p>
+      </div>
       <div class="form-group">
         <label>Показывать в профиле FunPay</label>
         <div class="toggle-row">
@@ -173,6 +191,7 @@
   </div>
 
   <script src="../js/main.js"></script>
+  <script src="../js/resources.js"></script>
   <script src="../js/github-api.js"></script>
   <script src="../js/image-convert.js"></script>
   <script src="../js/admin.js"></script>

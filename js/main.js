@@ -386,10 +386,15 @@ async function loadShop() {
       const lotUrl = ROOT + 'lot/?shop=' + encodeURIComponent(shopId) + '&id=' + encodeURIComponent(lot.id);
       const title  = normalizeLotTitle(lot.title);
 
+      const resHtml = (typeof renderResourceIcons === 'function')
+        ? renderResourceIcons(lot.resources, 'short')
+        : '';
+
       card.innerHTML = `
         ${thumbHtml}
         <div class="lot-card-body">
           <div class="lot-card-title">${escWithBr(title)}</div>
+          ${resHtml ? `<div class="lot-card-resources">${resHtml}</div>` : ''}
           <div class="lot-card-images-count">📸 ${count} ${plural(count, 'скриншот', 'скриншота', 'скриншотов')}</div>
         </div>
       `;
@@ -438,10 +443,15 @@ async function loadShop() {
               : `<div class="lot-row-thumb-placeholder">🎯</div>`;
 
             const title = normalizeLotTitle(lot.title);
+            // Ресурсы: мобайл → short, десктоп → full
+            const isMobile = window.innerWidth < 640;
+            const resIconsHtml = (typeof renderResourceIcons === 'function')
+              ? renderResourceIcons(lot.resources, isMobile ? 'short' : 'full')
+              : '';
             const tags = Array.isArray(lot.tags) ? lot.tags : [];
-            const tagsHtml = tags.length
+            const tagsHtml = resIconsHtml || (tags.length
               ? tags.slice(0, 10).map(t => `<span class="lot-row-tag">${esc(String(t))}</span>`).join('')
-              : `<span class="lot-row-tags-empty">Иконки ценности добавим позже</span>`;
+              : '');
 
             row.innerHTML = `
               <div class="lot-row-left">
